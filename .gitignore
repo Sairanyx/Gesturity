@@ -1,0 +1,13 @@
+# Virtual environment
+.venv/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# Recordings and local data
+data/raw/
+*.mp4
+
+# OS noise
+Thumbs.db
