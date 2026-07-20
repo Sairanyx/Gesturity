@@ -1,4 +1,6 @@
-"""Minimal webcam preview: shows video, deisplay FPS, quits on Q"""
+"""Minimal webcam preview: shows video,
+displays FPS, quits on Q, for dev purposes 
+mostly to test and check"""
 
 import time
 import cv2
