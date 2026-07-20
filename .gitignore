@@ -5,6 +5,9 @@
 __pycache__/
 *.pyc
 
+# Editable-install metadata
+*.egg-info/
+
 # Recordings and local data
 data/raw/
 *.mp4
