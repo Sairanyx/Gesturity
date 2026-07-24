@@ -11,6 +11,7 @@ from mediapipe.tasks.python import vision
 
 from gesture_unlock.normalisation import landmarks_to_array, normalise
 from gesture_unlock.static import recognise
+from gesture_unlock.stability import GestureStabiliser
 
 WINDOW_NAME = "Gesturity - gestures"
 MODEL_PATH = "models/hand_landmarker.task"
@@ -28,6 +29,8 @@ def main():
         raise RuntimeError("Could not open camera 0.")
     
     start = time.perf_counter()
+    stabiliser = GestureStabiliser(window_size=5, hold_seconds=0.4)
+
 
     try:
         while True:
@@ -45,9 +48,14 @@ def main():
                 points = landmarks_to_array(hand)
                 normalised = normalise(points)
                 gesture = recognise(normalised)
+                now = time.perf_counter() - start
+                stable = stabiliser.update(gesture.name, now)
 
-                cv2.putText(frame, gesture.name, (10, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+                # White while still settling and green once it has held long enoug
+                colour = (0, 255, 0) if stable.is_stable else (200, 200, 200)
+                cv2.putText(frame, stable.name, (10, 40),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, colour, 2)
+
                 
                 y = 80
                 for finger_name in gesture.fingers:
