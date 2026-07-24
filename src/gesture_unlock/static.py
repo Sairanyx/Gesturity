@@ -15,6 +15,9 @@ FINGER_MCP = {"thumb": 2, "index": 5, "middle": 9, "ring": 13, "pinky": 17}
 # further from the wrist than its base knuckles
 EXTENSION_MARGIN = 0.6
 
+# The thumb curls sideways, not toward the wrist, so it needs a gentler test.
+THUMB_MARGIN = 0.3
+
 @dataclass
 class GestureResult:
     name: str
@@ -31,7 +34,8 @@ def finger_states(points: np.ndarray) -> dict[str, bool]:
     for name in FINGERTIPS:
         tip_dist = _distance(points[FINGERTIPS[name]], wrist)
         mcp_dist = _distance(points[FINGER_MCP[name]], wrist)
-        states[name] = tip_dist > mcp_dist + EXTENSION_MARGIN
+        margin = THUMB_MARGIN if name == "thumb" else EXTENSION_MARGIN
+        states[name] = tip_dist > mcp_dist + margin
     return states
 
 GESTURE_TABLE = {
@@ -46,6 +50,6 @@ def recognise(points: np.ndarray) -> GestureResult:
     states = finger_states(points)
     extended = tuple(name for name in FINGERTIPS if states[name])
     name = GESTURE_TABLE.get(extended, "UNKNOWN")
-    score = 1.0 if name != "UNKOWN" else 0.0
+    score = 1.0 if name != "UNKNOWN" else 0.0
     return GestureResult(name=name, score=score, fingers=states)
 

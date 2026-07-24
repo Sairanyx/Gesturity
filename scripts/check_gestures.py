@@ -12,6 +12,7 @@ from mediapipe.tasks.python import vision
 from gesture_unlock.normalisation import landmarks_to_array, normalise
 from gesture_unlock.static import recognise
 from gesture_unlock.stability import GestureStabiliser
+from gesture_unlock.sequence import SequenceEngine, SequenceEvent
 
 WINDOW_NAME = "Gesturity - gestures"
 MODEL_PATH = "models/hand_landmarker.task"
@@ -30,6 +31,8 @@ def main():
     
     start = time.perf_counter()
     stabiliser = GestureStabiliser(window_size=5, hold_seconds=0.4)
+    sequence = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
+    unlocked_until = 0.0   # keeps the "UNLOCKED" message on screen briefly
 
 
     try:
@@ -37,6 +40,8 @@ def main():
             ok, frame = capture.read()
             if not ok:
                 break
+
+            now = time.perf_counter() - start
 
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
@@ -48,15 +53,23 @@ def main():
                 points = landmarks_to_array(hand)
                 normalised = normalise(points)
                 gesture = recognise(normalised)
-                now = time.perf_counter() - start
                 stable = stabiliser.update(gesture.name, now)
 
-                # White while still settling and green once it has held long enoug
+                # White while still settling and green once it has held long enough
                 colour = (0, 255, 0) if stable.is_stable else (200, 200, 200)
                 cv2.putText(frame, stable.name, (10, 40),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.2, colour, 2)
 
-                
+                # Only feeds STABLE gestures into the sequence engine
+                if stable.is_stable:
+                    outcome = sequence.update(stable.name)
+                    if outcome.event == SequenceEvent.COMPLETED:
+                        unlocked_until = now + 2.0   # show success for 2 seconds
+
+                    progress = f"Step {outcome.step}/{outcome.total}"
+                    cv2.putText(frame, progress, (10, 300),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+
                 y = 80
                 for finger_name in gesture.fingers:
                     is_up = gesture.fingers[finger_name]
@@ -64,6 +77,10 @@ def main():
                     cv2.putText(frame, text, (10, y),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1)
                     y = y + 25
+
+            if now < unlocked_until:
+                cv2.putText(frame, "UNLOCKED!", (10, 200),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
 
             cv2.imshow(WINDOW_NAME, frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
