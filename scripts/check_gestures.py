@@ -13,7 +13,8 @@ from gesture_unlock.normalisation import landmarks_to_array, normalise
 from gesture_unlock.static import recognise
 from gesture_unlock.stability import GestureStabiliser
 from gesture_unlock.sequence import SequenceEngine, SequenceEvent
-from gesture_unlock.actions import SoundAction
+from gesture_unlock.actions import WavAction
+
 
 
 WINDOW_NAME = "Gesturity - gestures"
@@ -35,7 +36,8 @@ def main():
     stabiliser = GestureStabiliser(window_size=5, hold_seconds=0.4)
     sequence = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
     unlocked_until = 0.0   # keeps the "UNLOCKED" message on screen briefly
-    unlock_action = SoundAction()
+    unlock_action = WavAction("sounds/unlock.wav")
+
 
 
 

@@ -22,10 +22,24 @@ class PrintAction(Action):
         print(self._message)
 
 class SoundAction(Action):
-    """Here is the system sound on completed successful sequence, you can pick your own cool one of course"""
+    """Here is the system sound on completed successful sequence, you can pick your own cool one of course
+    theres a folder Sound to do that for and next class under does that"""
 
     def run(self) -> None:
         import winsound
         winsound.Beep(800, 200) # Setting the frequency to 880Hz and the duration to 200 ms so short
 
+class WavAction(Action):
+    """This makes it so you can add your own custom sound on unlock, it has to be WAV file, 
+    if you add none, then it will be the default sound from above, line 29"""
 
+    def __init__(self, wav_path: str):
+        self._wav_path = wav_path
+
+    def run(self) -> None:
+        import os
+        import winsound
+        if os.path.exists(self._wav_path):
+            winsound.PlaySound(self._wav_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+        else:
+            winsound.Beep(880, 200) # Fallback if no file
