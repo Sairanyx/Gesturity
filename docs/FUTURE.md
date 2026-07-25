@@ -22,6 +22,12 @@ Current recognition is rotation-invariant, so it can't tell thumbs-up from
 thumbs-down (same finger shape, rotated). Add an optional hand-orientation
 signal (relative to the frame/gravity) used only where direction matters.
 
+## Sequence step timeout
+
+If the user holds one gesture too long (e.g. > 3 seconds) or pauses between
+steps, reset progress to 0. Prevents a stale half-entered sequence from lingering.
+Listed in the roadmap (Phase 6, "timeout for each step").
+
 ## Per-user calibration / recorded gestures
 
 Let users record their own gestures (see roadmap Phases 10, 12, 13). Compare a
