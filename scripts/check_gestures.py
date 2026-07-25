@@ -13,6 +13,8 @@ from gesture_unlock.normalisation import landmarks_to_array, normalise
 from gesture_unlock.static import recognise
 from gesture_unlock.stability import GestureStabiliser
 from gesture_unlock.sequence import SequenceEngine, SequenceEvent
+from gesture_unlock.actions import SoundAction
+
 
 WINDOW_NAME = "Gesturity - gestures"
 MODEL_PATH = "models/hand_landmarker.task"
@@ -33,6 +35,8 @@ def main():
     stabiliser = GestureStabiliser(window_size=5, hold_seconds=0.4)
     sequence = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
     unlocked_until = 0.0   # keeps the "UNLOCKED" message on screen briefly
+    unlock_action = SoundAction()
+
 
 
     try:
@@ -65,6 +69,7 @@ def main():
                     outcome = sequence.update(stable.name)
                     if outcome.event == SequenceEvent.COMPLETED:
                         unlocked_until = now + 2.0   # show success for 2 seconds
+                        unlock_action.run()          #  dies the sound it was set to do
 
                     progress = f"Step {outcome.step}/{outcome.total}"
                     cv2.putText(frame, progress, (10, 300),
