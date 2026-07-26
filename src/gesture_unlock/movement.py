@@ -16,6 +16,9 @@ LOOKBACK = 0.3
 # After the swipe setting it to ignore news ones for a specific time to stop the repeats being counted and
 # avoid resetting
 COOLDOWN = 0.6
+# After a swipe the hand must slow down below this speed (hand widths per sample) to read the next one
+STILL_THRESHOLD = 0.15
+
 
 # Setting the 8 directions by the angle. Using atan2 gives 0 = right and 90 = up for example up to 360 degrees
 DIRECTIONS = [
@@ -58,6 +61,7 @@ class SwipeDetector:
     def __init__(self):
         self._history: deque[Sample] = deque()
         self._last_swipe_time = -999.0
+        self._armed = True 
 
     def update(self, points: np.ndarray, now: float) -> str:
         """Feeds the current hand landmarks + time and returns a swipe name or NONE"""
@@ -73,14 +77,20 @@ class SwipeDetector:
         while self._history and now - self._history[0].t > LOOKBACK:
             self._history.popleft()
 
-        # If still in cooldown from the last swipe it does nothing
-        if now - self._last_swipe_time < COOLDOWN:
+        # If the user just swiped this makes it stay disarmed until the hand goes nearly still
+        if not self._armed:
+            if len(self._history) >= 2:
+                recent = self._history[-1]
+                prev = self._history[-2]
+                speed = math.hypot(recent.x - prev.x, recent.y - prev.y)
+                if speed < STILL_THRESHOLD:
+                    self._armed = True       # hand settled so ready again
             return "NONE"
 
         if len(self._history) < 2:
             return "NONE"
 
-        # When theres movemene from the oldest sample to the newest
+        # When there's movement from the oldest sample to the newest
         start = self._history[0]
         end = self._history[-1]
         dx = end.x - start.x
@@ -90,8 +100,7 @@ class SwipeDetector:
         if distance < SWIPE_DISTANCE:
             return "NONE"
 
-        # atan 2 gives the movement angle and this negates the dy because image y is growing downward
         angle = math.degrees(math.atan2(-dy, dx)) % 360
-        self._last_swipe_time = now
+        self._armed = False          # disarm until the hand settles
         self._history.clear()
         return snap_direction(angle)

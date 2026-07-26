@@ -14,6 +14,8 @@ from gesture_unlock.static import recognise
 from gesture_unlock.stability import GestureStabiliser
 from gesture_unlock.sequence import SequenceEngine, SequenceEvent
 from gesture_unlock.actions import WavAction
+from gesture_unlock.movement import SwipeDetector
+
 
 
 
@@ -25,6 +27,9 @@ def main():
         base_options=BaseOptions(model_asset_path=MODEL_PATH),
         running_mode=vision.RunningMode.VIDEO,
         num_hands=1,
+        min_hand_detection_confidence=0.7,
+        min_hand_presence_confidence=0.7,
+        min_tracking_confidence=0.7,
     )
     landmarker = vision.HandLandmarker.create_from_options(options)
 
@@ -37,9 +42,8 @@ def main():
     sequence = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
     unlocked_until = 0.0   # keeps the "UNLOCKED" message on screen briefly
     unlock_action = WavAction("sounds/unlock.wav")
-
-
-
+    swipe_detector = SwipeDetector()
+    last_swipe = "NONE"
 
     try:
         while True:
@@ -65,6 +69,11 @@ def main():
                 colour = (0, 255, 0) if stable.is_stable else (200, 200, 200)
                 cv2.putText(frame, stable.name, (10, 40),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.2, colour, 2)
+                swipe = swipe_detector.update(points, now)
+                if swipe != "NONE":
+                    last_swipe = swipe
+                cv2.putText(frame, f"Swipe: {last_swipe}", (10, 120),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 100, 0), 2)
 
                 # Only feeds STABLE gestures into the sequence engine
                 if stable.is_stable:
@@ -76,8 +85,9 @@ def main():
                     progress = f"Step {outcome.step}/{outcome.total}"
                     cv2.putText(frame, progress, (10, 300),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-
+                    
                 y = 80
+
                 for finger_name in gesture.fingers:
                     is_up = gesture.fingers[finger_name]
                     text = finger_name + ": " + ("UP" if is_up else "down")
@@ -85,6 +95,12 @@ def main():
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1)
                     y = y + 25
 
+            else:
+                # No hand in frame tells the system nothing is there so it resets cleanly
+                stabiliser.update("UNKNOWN", now)
+                sequence.update("UNKNOWN")
+                last_swipe = "NONE"
+            
             if now < unlocked_until:
                 cv2.putText(frame, "UNLOCKED!", (10, 200),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
