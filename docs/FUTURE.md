@@ -28,6 +28,12 @@ If the user holds one gesture too long (e.g. > 3 seconds) or pauses between
 steps, reset progress to 0. Prevents a stale half-entered sequence from lingering.
 Listed in the roadmap (Phase 6, "timeout for each step").
 
+## Quiet the startup logs
+
+MediaPipe/TensorFlow print noisy INFO/WARNING lines and a harmless clearcut
+telemetry error on startup. Suppress them (e.g. TF_CPP_MIN_LOG_LEVEL env var,
+absl logging config) so the terminal is clean for a real product.
+
 ## Polished lock-screen visuals
 
 Make the lock screen look like a real Windows lock/sign-in screen: background

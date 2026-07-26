@@ -14,6 +14,13 @@ WINDOW_NAME = "Gesturity Lock"
 MODEL_PATH = "models/hand_landmarker.task"
 PIN = "1234"   # fallback if the camera or gestures fail
 
+def draw_centered(screen, text, y, scale, colour, thickness, width=1280):
+    """Draws text horizontally centered by measuring its real width first"""
+    (text_w, _), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, scale, thickness)
+    x = (width - text_w) // 2
+    cv2.putText(screen, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, scale, colour, thickness)
+
+
 def draw_screen(unlocked: bool, typed_pin: str = "",
                 width: int = 1280, height: int = 720) -> np.ndarray:
 
@@ -21,19 +28,15 @@ def draw_screen(unlocked: bool, typed_pin: str = "",
     screen = np.zeros((height, width, 3), dtype=np.uint8)
 
     if unlocked:
-        cv2.putText(screen, "UNLOCKED", (width // 2 - 220, height // 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 2.5, (0, 255, 0), 4)
+        draw_centered(screen, "UNLOCKED", height // 2, 2.5, (0, 255, 0), 4, width)
     else:
-        cv2.putText(screen, "LOCKED", (width // 2 - 160, height // 2 - 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 2.5, (0, 0, 255), 4)
-        cv2.putText(screen, "Perform your gesture sequence to unlock",
-                    (width // 2 - 360, height // 2 + 20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
-        # No progress shown on purpose: revealing steps would help an attacker guess.
+        draw_centered(screen, "LOCKED", height // 2 - 60, 2.5, (0, 0, 255), 4, width)
+        draw_centered(screen, "Perform your gesture sequence to unlock",
+                      height // 2 + 20, 0.9, (255, 255, 255), 2, width)
+        # No progress shown on purpose as it would help anyone trying to break in
         dots = "*" * len(typed_pin)
-        cv2.putText(screen, f"PIN: {dots}   (type {len(PIN)} digits)",
-                    (width // 2 - 200, height // 2 + 140),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 200, 200), 2)
+        draw_centered(screen, f"PIN: {dots}   (type {len(PIN)} digits)",
+                      height // 2 + 140, 0.8, (200, 200, 200), 2, width)
 
     cv2.putText(screen, "Press ESC to exit", (30, height - 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (150, 150, 150), 1)
