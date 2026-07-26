@@ -29,14 +29,16 @@ class SequenceEngine:
 
     def update(self, gesture: str) -> SequenceState:
         """It gets feed one stable gesture and returns what happened"""
-        # Ignore repeats and only reacts when the stable gesture changes
-        if gesture == self._last_gesture:
-            return self._result(SequenceEvent.NONE)
-        self._last_gesture = gesture
-
         # Ignores UNKNOWN so hand is gone or unrecognised shape for now
         if gesture == "UNKNOWN":
             return self._result(SequenceEvent.NONE)
+
+        # Ignore repeats of a HELD pose (fist held for many frames = one fist).
+        # Swipes are discrete events, so they are never treated as repeats.
+        is_swipe = gesture.startswith("SWIPE_")
+        if not is_swipe and gesture == self._last_gesture:
+            return self._result(SequenceEvent.NONE)
+        self._last_gesture = gesture
 
         expected = self._sequence[self._step]
         if gesture == expected:
@@ -46,8 +48,14 @@ class SequenceEngine:
                 return self._result(SequenceEvent.COMPLETED)
             return self._result(SequenceEvent.ADVANCED)
         else:
-            self._step = 0
-            return self._result(SequenceEvent.RESET)
+            # Only reset if this gesture is actually part of the sequence
+            # (a real out oforder mistake). Ignores gestures not in the password
+            # at all as those are just noise and not a wrong step. Had it like this for convenience.
+            if gesture in self._sequence:
+                self._step = 0
+                return self._result(SequenceEvent.RESET)
+            return self._result(SequenceEvent.NONE)
+
 
 
     @property

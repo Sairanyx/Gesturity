@@ -11,12 +11,22 @@ def test_full_sequence_completes():
     assert engine.update("OPEN_PALM").event == SequenceEvent.COMPLETED
 
 
-def test_wrong_gesture_resets():
+def test_wrong_in_sequence_gesture_resets():
+    # A gesture that IS in the password but out of order is a real mistake -> reset.
     engine = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
     engine.update("FIST")                        # step 1
-    result = engine.update("THUMBS_UP")          # wrong -> resets to start
+    result = engine.update("OPEN_PALM")          # in-sequence but wrong position
     assert result.event == SequenceEvent.RESET
     assert result.step == 0
+
+
+def test_noise_gesture_is_ignored():
+    # A gesture NOT in the password is just noise -> ignored, progress kept.
+    engine = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
+    engine.update("FIST")                        # step 1
+    result = engine.update("THUMBS_UP")          # not in sequence -> ignored
+    assert result.event == SequenceEvent.NONE
+    assert result.step == 1                       # progress kept
 
 
 

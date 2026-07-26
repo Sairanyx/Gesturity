@@ -12,6 +12,8 @@ from gesture_unlock.normalisation import landmarks_to_array, normalise
 from gesture_unlock.static import recognise
 from gesture_unlock.stability import GestureStabiliser
 from gesture_unlock.sequence import SequenceEngine, SequenceEvent
+from gesture_unlock.movement import SwipeDetector
+
 
 
 @dataclass
@@ -37,6 +39,11 @@ class GestureUnlocker:
         self._stabiliser = GestureStabiliser(window_size=5, hold_seconds=0.4)
         self._sequence = SequenceEngine(sequence)
         self._total = len(sequence)
+        self._swipe_detector = SwipeDetector()
+        self._pose_after_swipe = None        # leftover pose to ignore after a swipe
+        self._last_stable_pose = "UNKNOWN"   # most recent clearly-held gesture
+
+
 
     def process(self, frame, now: float) -> FrameResult:
         """Feed one camera frame plus the current time. Returns the result."""
@@ -51,10 +58,32 @@ class GestureUnlocker:
             points = landmarks_to_array(result.hand_landmarks[0])
             stable = self._stabiliser.update(recognise(normalise(points)).name, now)
             gesture = stable.name
-            if stable.is_stable:
-                outcome = self._sequence.update(stable.name)
+
+            # Remember the last clearly-held pose (used to ignore the leftover pose
+            # after a swipe). Updated only on a real stable, known gesture.
+            if stable.is_stable and stable.name != "UNKNOWN":
+                self._last_stable_pose = stable.name
+
+            # Decides the one action this frame: a swipe wins, else a stable pose.
+            swipe = self._swipe_detector.update(points, now, stable.name)
+            if swipe != "NONE":
+                action = swipe
+                # After a swipe, ignore whatever pose we were holding while swiping,
+                # until the hand changes to a genuinely different pose.
+                self._pose_after_swipe = self._last_stable_pose
+            elif stable.is_stable and stable.name != self._pose_after_swipe:
+                action = stable.name
+                self._pose_after_swipe = None   # a new pose appeared, stop ignoring
+            else:
+                action = "UNKNOWN"
+
+            if action != "UNKNOWN":
+                outcome = self._sequence.update(action)
+                if outcome.event != SequenceEvent.NONE:
+                    print(f"  {action:12s} -> step {self._sequence.step}/{self._total}  {outcome.event.name}")
                 if outcome.event == SequenceEvent.COMPLETED:
                     just_unlocked = True
+
 
         # Always report the engine's real remembered step, not a per-frame value.
         step = self._sequence.step

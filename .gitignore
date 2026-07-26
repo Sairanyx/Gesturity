@@ -20,3 +20,5 @@ Thumbs.db
 
 # Model files: large and re-downloadable via scripts/setup_model.py
 models/*.task
+
+docs/FUTURE.md

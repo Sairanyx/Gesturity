@@ -65,11 +65,12 @@ def main():
                 gesture = recognise(normalised)
                 stable = stabiliser.update(gesture.name, now)
 
+
                 # White while still settling and green once it has held long enough
                 colour = (0, 255, 0) if stable.is_stable else (200, 200, 200)
                 cv2.putText(frame, stable.name, (10, 40),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.2, colour, 2)
-                swipe = swipe_detector.update(points, now)
+                swipe = swipe_detector.update(points, now, stable.name)
                 if swipe != "NONE":
                     last_swipe = swipe
                 cv2.putText(frame, f"Swipe: {last_swipe}", (10, 120),
