@@ -41,6 +41,35 @@ image, centred user card/avatar, styled fonts, rounded PIN field, clean layout.
 Raw OpenCV drawing is limited here — likely move the UI to a real GUI toolkit
 (PyQt or Tkinter). This is presentation only; the recognition engine is untouched.
 
+## Two-hand support (near-term, after swipes)
+
+Enable num_hands=2 and let each hand hold its own gesture at the same time
+(e.g. left FIST + right PEACE as one combined step). Design questions to settle:
+do both hands need to match, how it interacts with sequences, combined vs
+either-hand. Do this as a focused step right after swipes, not mixed in with them.
+
+## Custom recorded motion gestures (fingertip drawing, shapes, arbitrary paths)
+
+Let the user "draw" a gesture in the air with a specific finger (e.g. index
+fingertip as a pen) — cleaner path than tracking the whole hand. They can record
+a circle, square, triangle, letter, or any custom squiggle and save it as their
+own gesture. Recognition matches new motion against the saved template.
+
+After recording, play back a SLOW-MOTION TRACE of the captured path so the user
+can see exactly what the system recorded, confirm it, and re-record if messy.
+This visual feedback also helps them make repeatable gestures.
+
+Needs: motion tracking (Phase 7 swipes) -> recording (Phase 10) -> template
+matching / DTW or a small model (Phase 12/13). Simple angle-snapping works for
+straight swipes; arbitrary shapes need the template/learned approach.
+
+## Gesturity Centre (the product UI)
+
+A desktop UI (installed app) where the user sets up everything: their PIN, their
+gesture/swipe/shape sequence, records custom motions (with the slow-mo trace
+preview above), picks the unlock sound, enables/disables the OS-login option.
+Front-end of the whole product, comes near the end once its features exist.
+
 ## Per-user calibration / recorded gestures
 
 Let users record their own gestures (see roadmap Phases 10, 12, 13). Compare a
