@@ -17,3 +17,6 @@ Thumbs.db
 
 # Test cache
 .pytest_cache/
+
+# Model files: large and re-downloadable via scripts/setup_model.py
+models/*.task
