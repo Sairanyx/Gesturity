@@ -28,6 +28,13 @@ If the user holds one gesture too long (e.g. > 3 seconds) or pauses between
 steps, reset progress to 0. Prevents a stale half-entered sequence from lingering.
 Listed in the roadmap (Phase 6, "timeout for each step").
 
+## Polished lock-screen visuals
+
+Make the lock screen look like a real Windows lock/sign-in screen: background
+image, centred user card/avatar, styled fonts, rounded PIN field, clean layout.
+Raw OpenCV drawing is limited here — likely move the UI to a real GUI toolkit
+(PyQt or Tkinter). This is presentation only; the recognition engine is untouched.
+
 ## Per-user calibration / recorded gestures
 
 Let users record their own gestures (see roadmap Phases 10, 12, 13). Compare a

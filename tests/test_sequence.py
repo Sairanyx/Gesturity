@@ -14,9 +14,10 @@ def test_full_sequence_completes():
 def test_wrong_gesture_resets():
     engine = SequenceEngine(["FIST", "PEACE", "OPEN_PALM"])
     engine.update("FIST")                        # step 1
-    result = engine.update("THUMBS_UP")          # wrong
+    result = engine.update("THUMBS_UP")          # wrong -> resets to start
     assert result.event == SequenceEvent.RESET
     assert result.step == 0
+
 
 
 def test_repeated_gesture_is_ignored():

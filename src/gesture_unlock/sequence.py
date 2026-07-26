@@ -34,10 +34,10 @@ class SequenceEngine:
             return self._result(SequenceEvent.NONE)
         self._last_gesture = gesture
 
-        # Ignores UNKOWN so hand is gone or unrecognised shape for now
+        # Ignores UNKNOWN so hand is gone or unrecognised shape for now
         if gesture == "UNKNOWN":
             return self._result(SequenceEvent.NONE)
-        
+
         expected = self._sequence[self._step]
         if gesture == expected:
             self._step += 1
@@ -48,6 +48,12 @@ class SequenceEngine:
         else:
             self._step = 0
             return self._result(SequenceEvent.RESET)
+
+
+    @property
+    def step(self) -> int:
+        """The current progress, always available even between updates"""
+        return self._step
 
     def _result(self, event: SequenceEvent) -> SequenceState:
         return SequenceState(event=event, step=self._step, total=len(self._sequence))
