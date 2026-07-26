@@ -43,7 +43,7 @@ def draw_screen(unlocked: bool, typed_pin: str = "",
     return screen
 
 def main() -> None:
-    unlocker = GestureUnlocker(MODEL_PATH, ["FIST", "SWIPE_RIGHT", "THUMBS_UP"])
+    unlocker = GestureUnlocker(MODEL_PATH, ["FIST", "SWIPE_RIGHT", "OPEN_PALM", "SWIPE_LEFT", "THUMBS_UP"])
     unlock_sound = WavAction("sounds/unlock.wav")
 
     capture = cv2.VideoCapture(0)

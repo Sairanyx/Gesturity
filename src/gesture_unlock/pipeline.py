@@ -67,6 +67,7 @@ class GestureUnlocker:
             # Decides the one action this frame: a swipe wins, else a stable pose.
             swipe = self._swipe_detector.update(points, now, stable.name)
             if swipe != "NONE":
+                print(f"    >>> SWIPE DETECTED: {swipe}")
                 action = swipe
                 # After a swipe, ignore whatever pose we were holding while swiping,
                 # until the hand changes to a genuinely different pose.
